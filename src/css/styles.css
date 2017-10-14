@@ -1,0 +1,63 @@
+* { 
+	font-family:tahoma; 
+	font-size:12px; 
+	padding:0px; 
+	margin:0px; 
+}
+h1 {
+	font-size:48px;
+	text-align: center;
+}
+p { 
+	line-height:18px; 
+}
+div {
+	
+}
+#container {
+	margin-left:auto; 
+	margin-right:auto;
+}
+#header {
+	 margin: 0 auto;
+}
+#content { 
+	padding:5px; 
+	background:#ddd; 
+	border-radius:5px; 
+	overflow-y: scroll;
+	border:1px solid #CCC; 
+	margin-top:10px; 
+	height: 160px; 
+}
+#input { 
+	border-radius:2px; 
+	border:1px solid #ccc;
+	margin-top:10px; 
+	padding:5px; 
+	width:400px;
+}
+#status { 
+	width:88px; 
+	display:block; 
+	float:left; 
+	margin-top:15px;
+}
+#qaModal{
+	width: .65;
+	height: .3;
+}
+.question{
+    height:100px;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 1.5em;
+    padding-top: 35px;
+    cursor: pointer;
+}
+.modal-dialog{
+	width: 1000px;
+}
+.modal-body{
+	height: 200px;
+}
