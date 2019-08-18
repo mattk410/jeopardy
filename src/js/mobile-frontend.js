@@ -1,10 +1,26 @@
 "use strict";
+
+import Message from './message';
+import MessageTypes from './messageTypes';
+
+
 let connection;
 let nameBox = $('#username');
-let msg = {
-    type: null,
-    value: null
-};
+let qaBox = $('#qa');
+let categoryHTML = $('#category');
+let answerHTML = $('#answer');
+let buzzer = $('#buzzer');
+
+
+function buzzin(){
+    buzzer.hide();
+    let msg = new Message();
+    msg.type = MessageTypes.BUZZ;
+    msg.message = {};
+    connection.send(msg.toJSON());
+}
+
+
 
 // join game if user presses enter
 $(nameBox).keypress(function(event){
@@ -29,39 +45,50 @@ $(function(){
 });
 
 
+function startGame() {
+    $('#welcome').remove();
+    qaBox.show();
+}
+
+function showAnswer(message) {
+    console.log(message.getMessage());
+    receiveQA(message.getMessage());
+}
+
+function firstBuzz() {
+    console.log('firstBuzz');
+    alert('firstBuzz');
+}
+
+function closeQuestion() {
+    buzzer.hide();
+    categoryHTML.html('');
+    answerHTML.html('');
+}
+
 function join() {
-    
+    console.log("join");
     if(nameBox.val() === ''){
         return;
     }
-    var myName = nameBox.val();
-    msg.type = 'join';
-    msg.value = { connectionType: 'player', name: myName};
+
+    let myName = nameBox.val();
+    let msg = new Message();
+
+    msg.type = MessageTypes.JOIN;
+    msg.message = { connectionType: 'player', name: myName};
 
     // hide welcome div
-    $('#welcome').remove()
-
-    // for better performance - to avoid searching in DOM
-    var content = $('#content');
-    var input = $('#input');
-    var status = $('#status');
-
-    // my color assigned by the server
-    // var myColor = false;
-    // my name sent to the server
-
-    // if user is running mozilla then use it's built-in WebSocket
+    $('#welcome').hide();
+    // $('#welcome').empty();
+    // $('#welcome').append('<h1>Please wait...</h1>');
     
 
     // open connection
     connection = new WebSocket('ws://127.0.0.1:1337');
 
     connection.onopen = function () {
-        // first we want users to enter their names
-        // input.removeAttr('disabled');
-        // status.text('Choose name:');
-        // send the name to the server
-        connection.send(msg);
+        connection.send(msg.toJSON());
     };
 
     connection.onerror = function (error) {
@@ -72,72 +99,44 @@ function join() {
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
-        // try to parse JSON message. Because we know that the server always returns
-        // JSON this should work without any problem but we should make sure that
-        // the massage is not chunked or otherwise damaged.
+        let messageJSON, messageType;
         try {
-            var json = JSON.parse(message.data);
+             messageJSON = new Message().fromJSON(message.data);
+             messageType = messageJSON.type;
         } catch (e) {
             console.log('This doesn\'t look like a valid JSON: ', message.data);
             return;
         }
 
+        switch (messageType) {
+            case MessageTypes.START_GAME:
+                startGame();
+                break;
 
+            case MessageTypes.SHOW_ANSWER:
+                showAnswer(messageJSON);
+                break;
 
-        // NOTE: if you're not sure about the JSON structure
-        // check the server source code above
-        // if (json.type === 'color') { // first response from the server with user's color
-        //     myColor = json.data;
-        //     status.text(myName + ': ').css('color', myColor);
-        //     input.removeAttr('disabled').focus();
-        //     // from now user can start sending messages
-        // } else if (json.type === 'history') { // entire message history
-        //     // insert every single message to the chat window
-        //     for (var i=0; i < json.data.length; i++) {
-        //         addMessage(json.data[i].author, json.data[i].text,
-        //                    json.data[i].color, new Date(json.data[i].time));
-        //     }
-        // } else if (json.type === 'message') { // it's a single message
-        //     input.removeAttr('disabled'); // let the user write another message
-        //     addMessage(json.data.author, json.data.text,
-        //                json.data.color, new Date(json.data.time));
-        // } else if (json.type === 'buzzer'){
-        //     if(json.data.text === 'enable'){
-        //         console.log("enable");
-        //         document.getElementById('#buzzer').style.visibility = 'visible';
-        //     }
-        //     else if (json.data.text === 'disable'){
-        //         document.getElementById('#buzzer').style.visibility = 'hidden';
-        //         console.log("disable");
-        //     }
+            case MessageTypes.ACTIVATE_BUZZER:
+                buzzer.show();
+                break;
 
-        // } else {
-        //     console.log('Hmm..., I\'ve never seen JSON like this: ', json);
-        // }
+            case MessageTypes.DISABLE_BUZZER:
+                buzzer.hide();
+                break;
+
+            case MessageTypes.FIRST_BUZZ:
+                firstBuzz();
+                break;
+
+            case MessageTypes.CLOSE_QUESTION:
+                closeQuestion();
+                break;
+
+            default:
+                console.error('Unknown Message Type:', messageJSON);
+        }
     };
-
-    /**
-     * Send mesage when user presses Enter key
-     */
-    // input.keydown(function(e) {
-    //     if (e.keyCode === 13) {
-    //         var msg = $(this).val();
-    //         if (!msg) {
-    //             return;
-    //         }
-    //         // send the message as an ordinary text
-    //         connection.send(msg);
-    //         $(this).val('');
-    //         // disable the input field to make the user wait until server
-    //         // sends back response
-    //         input.attr('disabled', 'disabled');
-
-    //         // we know that the first message sent from a user their name
-    //         if (myName === false) {
-    //             myName = msg;
-    //         }
-    //     }
-    // });
 
     /**
      * This method is optional. If the server wasn't able to respond to the
@@ -146,8 +145,8 @@ function join() {
      */
     setInterval(function() {
         if (connection.readyState !== 1) {
-            status.text('Error');
-            input.attr('disabled', 'disabled').val('Unable to comminucate '
+            // status.text('Error');
+            console.log('Unable to comminucate '
                                                  + 'with the WebSocket server.');
         }
     }, 3000);
@@ -161,4 +160,12 @@ function join() {
              + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes())
              + ': ' + message + '</p>');
     }
+}
+
+
+function receiveQA(qa) {
+    qaBox.hide();
+    categoryHTML.text(qa.category + ' | ' + qa.points);
+    answerHTML.text(qa.answer);
+    qaBox.show()
 }

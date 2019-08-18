@@ -1,24 +1,25 @@
-let gameJSON;
-let roundJSON;
-let questionsRemaining = 6 * 5;
+import Message from './message';
+import MessageTypes from './messageTypes';
+
 let qaModal = $("#qaModal");
 let qaTitle = $('#qaTitle');
-let qaText = $('#qaText');
-let questionAnswer;
-let msg;
+let qaAnswer = $('#qaAnswer');
+let qaQuestion = $('#qaQuestion');
+let playerDiv = $('#player');
 
-function setupBoard(roundNo){
-	gameJSON = initJSON();
-	$('#title').html(gameJSON.game.title);
+
+function setupBoard(roundNo, categories, title){
+	// gameJSON = initJSON();
+	$('#title').html(title);
 	let catNo = 1;
 	let questionNo = 1;
-	let roundNumber = 'round' + roundNo;
-	roundJSON = gameJSON[roundNumber];
-	Object.keys(roundJSON).forEach(function (key){
-		$('#cat' + catNo).html(roundJSON[catNo].category);
+	
+	// console.log("categories");
+	// console.log(categories);
 
-		catNo++;
-	})
+	for (let i = 1; i <=6; i++){
+		$('#cat' + i).html(categories[i-1]);
+	}
 
 	for(let i = 1; i <= 5; i++){
 		let rowScore = i * roundNo * 100;
@@ -28,49 +29,91 @@ function setupBoard(roundNo){
 	$('.question').bind('click', function(){
 		questionClick($(this).attr('id'));
 	});
+
+	$('#configuration').addClass('hidden');
+	$('#game-board').removeClass('hidden');
 }
 
-function getQuestionAnswer(questionID, pointValue){
-	let ret = {};
-	let category = Math.floor(questionID / 10);
-	let questionNumber = questionID % 10;
-	// let temp = roundJSON['category' + category];
-	// console.log(roundJSON);
-	let qa = roundJSON[category][questionNumber];
-	ret.category = roundJSON[category].category;
-	ret.answer = qa.answer;
-	ret.question = qa.question;
-	ret.pointValue = pointValue;
-	return ret;
-}
+// function getQuestionAnswer(questionID, pointValue){
+// 	let ret = {};
+// 	let category = Math.floor(questionID / 10);
+// 	let questionNumber = questionID % 10;
+// 	let qa = roundJSON[category][questionNumber];
+// 	ret.category = roundJSON[category].category;
+// 	ret.answer = qa.answer;
+// 	ret.question = qa.question;
+// 	ret.pointValue = pointValue;
+// 	return ret;
+// }
 
-function displayQA(questionID, pointValue){
-	questionAnswer = getQuestionAnswer(questionID, pointValue);
+function displayQA(qa){
+	console.log("QA");
+	console.log(qa);
+	// questionAnswer = getQuestionAnswer(questionID, pointValue);
 
 	//show answer
-	qaTitle.html(questionAnswer.category + ' - ' + questionAnswer.pointValue);
-	qaText.html(questionAnswer.answer);
-	qaModal.modal();
+	qaTitle.html(qa.category + ' - ' + qa.points);
+	qaAnswer.html(qa.answer);
+	
+	if(isHost){
+		qaQuestion.html(qa.question);
+		playerDiv.show();
 
-	msg = {
-		type: "enable",
-		text: questionAnswer.answer
+	} else {
+		qaQuestion.html('');
+		playerDiv.hide();
 	}
 
-	connection.send(JSON.stringify(msg));
 
+	qaModal.modal();
+
+	// console.log('isHost: '+ isHost)
+	// if(isHost){
+	// 	msg = {
+	// 		type: "sendQA",
+	// 		value: {
+	// 			questionID: questionID,
+	// 			ans: qa.answer,
+	// 			cat: qa.category,
+	// 			ques: qa.question,
+	// 			pts: qa.pointValue
+	// 		}
+	// 	}
+
+
+	//}
+
+}
+
+function disableQuestion(questionID){
+	// console.log(questionID);
+	let div = $('#'+ questionID);
+	let pointValue = div.html();
+	div.html('');
+	div.unbind('click');
+	return pointValue;
 }
 
 function questionClick(questionID){
-		console.log(questionID);
-		let div = $('#'+ questionID);
-		let pointValue = div.html();
-		div.html('');
-		div.unbind('click');
+	let pointValue = disableQuestion(questionID);
+	
+	// sendQA(questionID, pointValue);
+	let msg = new Message();
+	msg.type = MessageTypes.QUESTION_CLICK;
+	let msgBody = {
+		questionID: questionID,
+		pointValue: pointValue,
+	};
 
-		displayQA(questionID, pointValue);
+	msg.message = msgBody;
 
-	}
+	connection.send(msg.toJSON());
+
+}
+
+function receiveQA(){
+	
+}
 
 function playRound(){
 	// while(questionsRemaining){
@@ -84,314 +127,4 @@ function showAnswer(){
 
 function revealQuestion(){
 
-}
-
-
-function runGame(){
-	let round = 1,
-		numRounds = 1;
-
-	while(round <= numRounds){
-		setupBoard(round);
-		// playRound(round);
-		round++;
-	}
-
-}
-
-runGame();
-
-function initJSON(){
-return {
-	"game" : {
-		"title": "Jeopardy!"
-	},
-	"round1" : {
-		"1" : {
-			"category": "category1",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"2" : {
-			"category": "category2",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"3" : {
-			"category": "category3",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-
-		},
-		"4" : {
-			"category": "category4",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"5" : {
-			"category": "category5",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"6" : {
-			"category": "category6",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-	},
-	"round2" : {
-		"1" : {
-			"category": "category1",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"2" : {
-			"category": "category2",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4": {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"3" : {
-			"category": "category3",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-
-		},
-		"4" : {
-			"category": "category4",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"5" : {
-			"category": "category5",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-		"6" : {
-			"category": "category6",
-			"1" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"2" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"3" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"4" : {
-				"answer" : "answer",
-				"question" : "question"
-			},
-			"5" : {
-				"answer" : "answer",
-				"question" : "question"
-			}
-		},
-	},
-	"final" : {
-		"category" : "final category",
-		"answer" : "The Answer",
-		"question" : "What is the question?"
-	}
-};
 }

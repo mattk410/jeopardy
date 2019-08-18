@@ -3,10 +3,10 @@ import MessageTypes from './messageTypes';
 
 let connection;
 
-let isHost = false;
+let isHost = true;
+let respondingPlayerNumber;
 
 function playerJoin(messageJSON, players) {
-    // set player's name
     let playerNum = messageJSON.message.playerNum;
     let playerName = messageJSON.message.name;
 
@@ -18,6 +18,13 @@ function playerJoin(messageJSON, players) {
     player.nameElt.text(playerName);
 }
 
+function hostJoin(messageJSON) {
+    let games = messageJSON.message.availableGames;
+    console.log("games");
+    console.log(games);
+    displayGames(games);
+}
+
 function setupRound(messageJSON) {
     let roundNumber = messageJSON.message.roundNumber;
     let categories = messageJSON.message.categories;
@@ -25,23 +32,44 @@ function setupRound(messageJSON) {
     setupBoard(roundNumber, categories, title);
 }
 
-function correctQuestion() {
-    console.log("correctQuestion");
-    $('#qaModal').modal('hide');
+function setupFinal(messageJSON) {
+
 }
 
-function closeQuestion() {
-    $('#qaModal').modal('hide');
-}
+function firstBuzz(messageJSON, players) {
+    console.log('firstBuzz');
+    console.log("First Value :: " + messageJSON.message.first);
 
-function firstBuzz() {
-    //TODO
-    console.log("firstBuzz");
+    let playerName = players[messageJSON.message.first].name;
+
+    $('#playerName').text(playerName);
+    $('#player').show();
+
+    respondingPlayerNumber = messageJSON.message.first;
 }
 
 function responseStatus(players, messageJSON) {
     let playerScoreElt = players[messageJSON.message.player].scoreElt;
     playerScoreElt.text(messageJSON.message.score);
+}
+
+function closeQuestionDialog() {
+    $('#playerName').text('');
+    $('#qaModal').modal('hide');
+}
+
+function submitDailyDoubleWager() {
+    let wager = $('#dailyDoubleWager').text('');
+
+    try {
+        wager = parseInt(wager);
+    }
+    catch (e) {
+        $('#dailyDoubleMessage').val('Invalid value');
+        return;
+    }
+
+
 }
 
 $(function () {
@@ -79,10 +107,9 @@ $(function () {
         // input.removeAttr('disabled');
         // status.text('Choose name:');
         console.log("connection opened");
-
         let msg = new Message();
         msg.type = MessageTypes.JOIN;
-        msg.message = {connectionType: "board"};
+        msg.message = {connectionType: "host"};
 
         connection.send(msg.toJSON());
 
@@ -96,6 +123,9 @@ $(function () {
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
+        // try to parse JSON message. Because we know that the server always returns
+        // JSON this should work without any problem but we should make sure that
+        // the massage is not chunked or otherwise damaged.
         let messageJSON, messageType;
         try {
             messageJSON = new Message().fromJSON(message.data);
@@ -104,40 +134,43 @@ $(function () {
             console.log('This doesn\'t look like a valid JSON: ', message.data);
             return;
         }
+        console.log(messageJSON);
 
         switch (messageType) {
             case messageJSON.MessageTypes.PLAYER_JOIN:
                 playerJoin(messageJSON, players);
                 break;
 
+            case messageJSON.MessageTypes.HOST_JOIN:
+                hostJoin(messageJSON);
+                break;
+
             case messageJSON.MessageTypes.SETUP_ROUND:
                 setupRound(messageJSON);
                 break;
 
+            case messageJSON.MessageTypes.START_FINAL:
+                setupFinal(messageJSON);
+                break;
+
             case messageJSON.MessageTypes.SHOW_ANSWER:
-                disableQuestion(messageJSON.getMessage().questionID);
-                displayQA(messageJSON.getMessage());
+                displayQA(messageJSON.message);
                 break;
 
-            case messageJSON.MessageTypes.CORRECT_QUESTION:
-                correctQuestion();
-                break;
-
-            case messageJSON.MessageTypes.CLOSE_QUESTION:
-                closeQuestion();
+            case messageJSON.MessageTypes.FIRST_BUZZ:
+                firstBuzz(messageJSON, players);
                 break;
 
             case messageJSON.MessageTypes.RESPONSE_STATUS:
                 responseStatus(players, messageJSON);
                 break;
 
-            case messageJSON.MessageTypes.FIRST_BUZZ:
-                firstBuzz();
+            case messageJSON.MessageTypes.CLOSE_QUESTION:
+                closeQuestionDialog();
                 break;
 
             default:
                 console.error('Unknown Message Type:', messageJSON);
-
         }
     };
 
@@ -149,18 +182,76 @@ $(function () {
     setInterval(function() {
         if (connection.readyState !== 1) {
             // status.text('Error');
-            console.log('Unable to comminucate with the WebSocket server.');
+            console.log('Unable to comminucate '
+                                                 + 'with the WebSocket server.');
         }
     }, 3000);
 
+
+    function markPlayerResponse(status){
+        if (!$('#playerName').text()) {
+            alert('No Player Buzzed');
+            return;
+        }
+        let msg = new Message();
+        msg.type = MessageTypes.QUESTION_RESPONSE;
+        msg.message = {
+            status: status,
+            player: $('#playerName').text()
+        };
+        msg.log('OUT');
+        connection.send(msg.toJSON());
+    }
+
+    $('#correct').click(event => {
+        markPlayerResponse(event.target.id);
+        closeQuestion();
+    });
+
+    $('#incorrect').click(event => {
+        markPlayerResponse(event.target.id);
+        $('#player').hide();
+    });
+
+    $('#dailyDoubleSubmit').click(event => {
+       submitDailyDoubleWager();
+    });
 });
 
-function receiveQA(qa) {
-    $('#qaModal').modal('hide');
-    $('#qaTitle').text(qa.category + ' | ' + qa.pointValue);
-    $('#qaAnswer').text(qa.answer);
-    $('#qaQuestion').text(qa.question);
-    $('#qaQuestion').hide();
-    $('#qaModal').modal('show');
+
+function displayGames(games){
+    for (let i = 0; i < games.length; i++){
+        console.log(games[i]);    
+        $('#select-game').append('<button id = "' + games[i] + '" type="button" class="btn btn-default game-option">' + games[i] + '</button>');
+    }
+
+    $('#select-game').append('<button type="button" class="btn btn-default" disabled>Upload new</button>');
+
+    $('.game-option').click(function(){
+        let selectedGame = this.id;
+        console.log('this');
+        console.log(this);
+        console.log("selectedGame: " + selectedGame);
+
+        let msg = new Message();
+        msg.type = MessageTypes.GAME_SELECTION;
+        msg.message = { selectedGame : selectedGame };
+
+        connection.send(msg.toJSON());
+        $('#select-game').remove();
+        console.log('removed');
+    })
 }
 
+function closeQuestion(){
+    console.log('closeQuestion');
+    $('#player').hide();
+    let msg = new Message();
+    msg.type = MessageTypes.CLOSE_QUESTION;
+    connection.send(msg.toJSON());
+    closeQuestionDialog();
+}
+
+$('#closeQuestion').click(() => {
+        closeQuestion();
+});

@@ -4,12 +4,14 @@
   "description": "An interactive web app using mobile devices as buzzers",
   "main": "index.js",
   "dependencies": {
-    "fs": "0.0.1-security",
+    "lodash": "^4.17.5",
+    "path": "^0.12.7",
     "websocket": "^1.0.24"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "nodemon --inspect <path_to_the_file_that_starts_your_application>"
   },
   "author": "Matt Kilens",
   "license": "ISC"
