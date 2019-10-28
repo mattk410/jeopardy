@@ -1,8 +1,8 @@
 "use strict";
 
-import Message from './message';
-import MessageTypes from './messageTypes';
-
+import React from "react";
+import Message from '../../shared/message';
+import MessageTypes from '../../shared/messageTypes';
 
 let connection;
 let nameBox = $('#username');
@@ -37,7 +37,7 @@ $(function(){
     // if browser doesn't support WebSocket, just show some notification and exit
     if (!window.WebSocket) {
         content.html($('<p>', { text: 'Sorry, but your browser doesn\'t '
-                                    + 'support WebSockets.'} ));
+                + 'support WebSockets.'} ));
         welcome.hide();
         $('span').hide();
         return;
@@ -82,7 +82,7 @@ function join() {
     $('#welcome').hide();
     // $('#welcome').empty();
     // $('#welcome').append('<h1>Please wait...</h1>');
-    
+
 
     // open connection
     connection = new WebSocket('ws://127.0.0.1:1337');
@@ -94,15 +94,15 @@ function join() {
     connection.onerror = function (error) {
         // just in there were some problems with conenction...
         content.html($('<p>', { text: 'Sorry, but there\'s some problem with your '
-                                    + 'connection or the server is down.' } ));
+                + 'connection or the server is down.' } ));
     };
 
     // most important part - incoming messages
     connection.onmessage = function (message) {
         let messageJSON, messageType;
         try {
-             messageJSON = new Message().fromJSON(message.data);
-             messageType = messageJSON.type;
+            messageJSON = new Message().fromJSON(message.data);
+            messageType = messageJSON.type;
         } catch (e) {
             console.log('This doesn\'t look like a valid JSON: ', message.data);
             return;
@@ -146,8 +146,7 @@ function join() {
     setInterval(function() {
         if (connection.readyState !== 1) {
             // status.text('Error');
-            console.log('Unable to comminucate '
-                                                 + 'with the WebSocket server.');
+            console.log('Unable to comminucate with the WebSocket server.');
         }
     }, 3000);
 
@@ -156,9 +155,9 @@ function join() {
      */
     function addMessage(author, message, dt) {
         content.prepend('<p><span>' + author + '</span> @ ' +
-             + (dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ':'
-             + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes())
-             + ': ' + message + '</p>');
+            + (dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ':'
+            + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes())
+            + ': ' + message + '</p>');
     }
 }
 
@@ -169,3 +168,22 @@ function receiveQA(qa) {
     answerHTML.text(qa.answer);
     qaBox.show()
 }
+
+class Player extends React.Component {
+
+
+    constructor() {
+        super();
+        this.state = {};
+    }
+
+    render() {
+        return (
+            <div className={'player'}>
+                <h1>I'm a player</h1>
+            </div>
+        )
+    }
+}
+
+export default Player;

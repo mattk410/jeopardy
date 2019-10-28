@@ -1,35 +1,31 @@
 "use strict";
 
-import Message from './message';
-import MessageTypes from './messageTypes';
-
+import http from 'http';
+import fs from 'fs';
+import Message from '../common/message';
+import MessageTypes from '../common/messageTypes';
+import finalhandler from 'Modules/finalhandler';
+import serveStatic from 'Modules/serve-static';
+import websocket from 'Modules/websocket';
+import path from 'Modules/path';
+import _ from 'Modules/lodash';
 
 process.title = 'jeopardy!';
 
-// Port where we'll run the websocket server
-var webSocketsServerPort = 1337;
+const webSocketsServerPort = 1337;
+const webSocketServer = websocket.server;
 
-// websocket and http servers
-var webSocketServer = require('websocket').server;
-var http = require('http');
-let fs = require('fs');
-let path = require('path');
-let _ = require('lodash');
-
-let gamesPath = './src/games-data/';
+const gamesPath = './src/games-data/';
 
 /**
  * Global variables
  */
-var clients = [ ];
+const clients = [ ];
 
-var finalhandler = require('finalhandler');
-var serveStatic = require('serve-static');
-
-var serve = serveStatic("./");
+const serve = serveStatic("./");
 
 
-let gameStatus = {
+const gameStatus = {
     gameJSON: null,
     hostStatus: { connection: null, 
         roundNumber: 1,
@@ -45,7 +41,7 @@ let gameStatus = {
     lastCorrectResponse: null
 };
 
-lastScore: null;
+// lastScore: null;
 
 let points;
 let buzzOrder = [];
@@ -87,7 +83,7 @@ function sendToPlayer(message, player){
 function sendToAllPlayers(message){
     message.log('OUT');
     let messageJSON = message.toJSON();
-    for(var i = 0; i < gameStatus.playersConnections.length; i++){
+    for (let i = 0; i < gameStatus.playersConnections.length; i++){
         let p = gameStatus.playersConnections[i];
         try{
             clients[p].sendUTF(messageJSON);
@@ -101,7 +97,7 @@ function sendToAllPlayers(message){
 function sendToAllConnections(message){
     message.log('OUT');
     let messageJSON = message.toJSON();
-    for(var i = 0; i < clients.length; i++){
+    for (let i = 0; i < clients.length; i++){
         clients[i].sendUTF(messageJSON);
     }
 }
@@ -117,8 +113,8 @@ function activateBuzzer(){
 /**
  * HTTP server
  */
-var server = http.createServer(function(request, response) {
-    var done = finalhandler(request, response);
+const server = http.createServer(function(request, response) {
+    const done = finalhandler(request, response);
     serve(request, response, done);
 });
 server.listen(webSocketsServerPort, function() {
@@ -128,7 +124,7 @@ server.listen(webSocketsServerPort, function() {
 /**
  * WebSocket server
  */
-var wsServer = new webSocketServer({
+const wsServer = new webSocketServer({
     // WebSocket server is tied to a HTTP server. WebSocket request is just
     // an enhanced HTTP request. For more info http://tools.ietf.org/html/rfc6455#page-6
     httpServer: server
@@ -434,10 +430,10 @@ wsServer.on('request', function(request) {
     // accept connection - you should check 'request.origin' to make sure that
     // client is connecting from your website
     // (http://en.wikipedia.org/wiki/Same_origin_policy)
-    var connection = request.accept(null, request.origin);
+    const connection = request.accept(null, request.origin);
     // we need to know client index to remove them on 'close' event
-    var index = clients.push(connection) - 1;
-    var userName = '';
+    let index = clients.push(connection) - 1;
+    let userName = '';
     // var userColor = false;
 
     // console.log((new Date()) + ' Connection accepted.');

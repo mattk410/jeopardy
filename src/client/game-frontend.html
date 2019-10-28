@@ -15,13 +15,11 @@
     
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
-    <link rel="stylesheet" type="text/css" href="./src/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="src/client/css/styles.css">
 </head>
 <body>
     <div id = "configuration">
         <h1>Waiting for configuration...</h1>
-        <div id="select-game" class="btn-group-vertical center-block">
-        </div>
     </div>
     <div id = "game-board" class="container hidden">
         <div class="header col-md-12">
@@ -91,48 +89,41 @@
                 </div>
                 <div class="clearfix"></div>
             </div>
-            <div class="panel-footer rounds">
-                <button class="round col-md-2 col-md-offset-1" id="round1">Round 1</button>
-                <button class="round col-md-2 col-md-offset-2" id="round2">Round 2</button>
-                <button class="round col-md-2 col-md-offset-2" id="final">Final Jeopardy</button>
-            </div>
         </div>
 
         <!-- Modal -->
         <div class="modal fade" id="qaModal" role="dialog">
             <div class="modal-dialog">
 
-                <!-- Modal content-->
-                <div class="modal-content">
-                    <div class="modal-header">
-                      <!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
-                      <h4 class="modal-title" id="qaTitle"></h4>
-                    </div>
-                    <div class="modal-body">
-                        <p id ='qaAnswer'>Some answer</p>
-                        <p id = 'qaQuestion'>Some question</p>
-                        <div id ='player' hidden='true'>
-                            <div id="dailyDouble" hidden=>
-                                <p id="dailyDoubleMessage"></p>
-                                <input id="dailyDoubleWager" type="text" placeholder="Enter wager"/>
-                                <button id="dailyDoubleSubmit" class="btn btn-info">Wager</button>
-                            </div>
-                            <h5 id='playerName'></h5>
-                            <button id="correct" type="button" class="btn btn-success">Correct</button>
-                            <button id="incorrect" type="button" class="btn btn-danger">Incorrect</button>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button id="closeQuestion" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+              <!-- Modal content-->
+              <div class="modal-content">
+                <div class="modal-header">
+                  <!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
+                  <h4 class="modal-title" id="qaTitle"></h4>
+              </div>
+              <div class="modal-body">
+                  <p id ='qaAnswer'>Some text in the modal.</p>
+                  <p id ='qaQuestion'>Some text in the modal.</p>
+                  <div id ='player' hidden='true'>
+                      <h5 id='playerName'></h5>
+                      <button type="button" class="btn btn-success">Correct</button>
+                      <button type="button" class="btn btn-danger">Incorrect</button>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+          </div>
+
+      </div>
+  </div>
+
     </div>
 
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
     <!--<script src="./src/js/message.js"></script>-->
-    <script src="./src/js/host.js"></script>
-    <script src="./src/js/board-setup.js"></script>
+    <script src="src/client/js/game-frontend.js"></script>
+    <script src="src/common/board-setup.js"></script>
+    <!-- <script src="./src/js/common.js"></script> -->
 </body>
 </html>

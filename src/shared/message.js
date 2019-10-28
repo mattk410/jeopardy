@@ -1,4 +1,4 @@
-class Message {
+export default class Message {
 
     constructor(json) {
         if (_.isEmpty(json)) {
@@ -45,5 +45,3 @@ class Message {
         console.log("============================");
     }
 }
-
-export default class {Message};
