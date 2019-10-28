@@ -14,7 +14,7 @@ p {
 div {
 	
 }
-#container {
+.app {
 	margin-left:auto; 
 	margin-right:auto;
 }
@@ -43,11 +43,28 @@ div {
 	float:left; 
 	margin-top:15px;
 }
-#qaModal{
-	width: .65;
-	height: .3;
+/*#qaModal {*/
+	/*width: 65%;*/
+	/*height: 30%;*/
+/*}*/
+#select-game {
+	width: 33%;
 }
-.question{
+#select-game button {
+	height: 100px;
+}
+.rounds {
+	height: 50px;
+	padding-top: 10px;
+}
+.round {
+	height: 30px;
+	border-radius: 2px;
+}
+.hidden {
+	display: none;
+}
+.question {
     height:100px;
     vertical-align: middle;
     text-align: center;
@@ -55,9 +72,24 @@ div {
     padding-top: 35px;
     cursor: pointer;
 }
-.modal-dialog{
+.modal-dialog {
 	width: 1000px;
 }
-.modal-body{
+.modal-body {
 	height: 200px;
+}
+.player {
+	text-align: center;
+}
+.connectionType {
+	text-align: center;
+}
+.connectionLink {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+.connectionLink {
+	text-decoration: none !important;
 }
